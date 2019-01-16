@@ -1,4 +1,7 @@
-#pragma once
+
+
+#ifndef CMAT_PFA_DEF_H
+#define CMAT_PFA_DEF_H
 
 
 
@@ -14,31 +17,31 @@ typedef struct sparsemat sparsemat;
 
 struct cplx
 {
-	double real;
-	double imag;
+    double real;
+    double imag;
 };
 
 struct normalmat
 {
-	double * real;
-	double * imag;
+    double * real;
+    double * imag;
 };
 
 
 struct sparsemat
 {
-	
+    
 };
 
 struct cmat
 {
-	int row = 0;
-	int col = 0;
-	
-	int sparse=0;
+    int row = 0;
+    int col = 0;
+    
+    int sparse = 0;
 
-	normalmat nmat;
-	sparsemat smat;
+    normalmat nmat;
+    sparsemat smat;
 };
 
 
@@ -78,3 +81,7 @@ cmat   cmnr(cmat a, int r, int c);
 double cdet(cmat a);
 cmat   cadjg(cmat a);
 cmat   cinv(cmat a);
+
+
+
+#endif
