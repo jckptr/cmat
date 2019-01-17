@@ -58,6 +58,18 @@ void cdel(cmat a)
 
 
 
+void cshow(cplx v)
+{
+    double r = v.real;
+    double c = v.imag;
+
+    if (c >= 0)
+        printf("%.4lf+j%.4lf\n", r, c);
+    else
+        printf("%.4lf-j%.4lf\n", r, -c);
+}
+
+
 void cshow(cmat a)
 {
     for (int i = 0; i < a.row; i++)
@@ -408,6 +420,26 @@ void cdivs(cmat a, cplx v, int r, int c)
     vr.real = (ve.real * v.real + ve.imag * v.imag) / den;
     vr.imag = (0 - ve.real * v.imag + ve.imag * v.real) / den;
     cset(a, vr, r, c);
+}
+
+cmat cadds(cmat a, cplx v)
+{
+    return cmat();
+}
+
+cmat csubs(cmat a, cplx v)
+{
+    return cmat();
+}
+
+cmat cmuls(cmat a, cplx v)
+{
+    return cmat();
+}
+
+cmat cdivs(cmat a, cplx v)
+{
+    return cmat();
 }
 
 

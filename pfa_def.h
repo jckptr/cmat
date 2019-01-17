@@ -52,6 +52,7 @@ cmat cnew(int r, int c);
 cmat cnew(double * real, double * imag, int r, int c);
 void cdel(cmat a);
 
+void cshow(cplx v);
 void cshow(cmat a);
 
 cplx cget(cmat a, int r, int c);
