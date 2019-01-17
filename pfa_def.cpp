@@ -175,6 +175,8 @@ cmat creal(cmat a)
     return mat;
 }
 
+
+
 cmat cimag(cmat a)
 {
     cmat mat;
@@ -190,6 +192,9 @@ cmat cimag(cmat a)
 
     return mat;
 }
+
+
+
 
 cmat cconj(cmat a)
 {
@@ -207,6 +212,10 @@ cmat cconj(cmat a)
 
     return mat;
 }
+
+
+
+
 
 
 cmat ctrans(cmat a)
@@ -231,6 +240,32 @@ cmat ctrans(cmat a)
 
     return mat;
 }
+
+
+
+
+cplx ctrace(cmat a)
+{
+    cplx v;
+    cplx temp;
+    int n = a.row;
+
+    if (a.row != a.col)
+        return v;
+
+    for (int i = 0; i < n; i++)
+    {
+        temp = cget(a, i, i);
+        v = cadd(v, temp);
+    }
+
+    return v;
+}
+
+
+
+
+
 
 cmat cadd(cmat a, cmat b)
 {
@@ -502,6 +537,54 @@ cmat cinv(cmat a)
     }
 
     return mat;
+}
+
+
+
+
+
+
+
+
+cplx cadd(cplx a, cplx b)
+{
+    cplx v;
+    
+    v.real = a.real + b.real;
+    v.imag = a.imag + b.imag;
+
+    return v;
+}
+
+cplx csub(cplx a, cplx b)
+{
+    cplx v;
+
+    v.real = a.real - b.real;
+    v.imag = a.imag - b.imag;
+
+    return v;
+}
+
+cplx cmul(cplx a, cplx b)
+{
+    cplx v;
+
+    v.real = a.real * b.real - a.imag * b.imag;
+    v.imag = a.real * b.imag + a.imag * b.real;
+
+    return v;
+}
+
+cplx cdiv(cplx a, cplx b)
+{
+    cplx v;
+
+    double den = b.real * b.real + b.imag * b.imag;
+    v.real = (a.real * b.real + a.imag * b.imag) / den;
+    v.imag = (0 - a.real * b.imag + a.imag * b.real) / den;
+
+    return v;
 }
 
 

@@ -17,8 +17,8 @@ typedef struct sparsemat sparsemat;
 
 struct cplx
 {
-    double real;
-    double imag;
+    double real = 0.0;
+    double imag = 0.0;
 };
 
 struct normalmat
@@ -64,8 +64,19 @@ cmat cdup(cmat a);
 cmat creal(cmat a);
 cmat cimag(cmat a);
 cmat cconj(cmat a);
-
 cmat ctrans(cmat a);
+cplx ctrace(cmat a);
+
+cmat   cmnr(cmat a, int r, int c);
+double cdet(cmat a);
+cmat   cadjg(cmat a);
+cmat   cinv(cmat a);
+
+
+cplx cadd(cplx a, cplx b);
+cplx csub(cplx a, cplx b);
+cplx cmul(cplx a, cplx b);
+cplx cdiv(cplx a, cplx b);
 
 cmat cadd(cmat a, cmat b);
 cmat csub(cmat a, cmat b);
@@ -77,11 +88,15 @@ void csubs(cmat a, cplx v, int r, int c);
 void cmuls(cmat a, cplx v, int r, int c);
 void cdivs(cmat a, cplx v, int r, int c);
 
-cmat   cmnr(cmat a, int r, int c);
-double cdet(cmat a);
-cmat   cadjg(cmat a);
-cmat   cinv(cmat a);
+cmat cadds(cmat a, cplx v);
+cmat csubs(cmat a, cplx v);
+cmat cmuls(cmat a, cplx v);
+cmat cdivs(cmat a, cplx v);
 
+cmat cadds(cmat a, cmat b);
+cmat csubs(cmat a, cmat b);
+cmat cmuls(cmat a, cmat b);
+cmat cdivs(cmat a, cmat b);
 
 
 #endif
