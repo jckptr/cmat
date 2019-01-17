@@ -45,6 +45,9 @@ int main()
 	cout << a.row << ' ' << a.col << endl;
 	cout << b.row << ' ' << b.col << endl;
 
+    cshow(ctrans(a));
+    cshow(ctrace(a));
+
 	cmat x = cdiv(b, a);
 	cout << x.row << ' ' << x.col << endl;
 	cshow(x);
