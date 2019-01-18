@@ -7,36 +7,51 @@
 
 
 
+static struct _csys_mem_ _m;
+
+
+
+
+
 cmat cnew(int r, int c)
 {
     cmat mat;
+    int i;
     
     mat.row = r;
     mat.col = c;
 
-    mat.nmat.real = new double[r * c];
-    mat.nmat.imag = new double[r * c];
+    if (_m.nnmat >= NMAX_NORMALMAT)
+    {
+        printf("cnew: Memory allocate failed\n");
+        return mat;
+    }
 
-    memset(mat.nmat.real, 0, r*c * sizeof(double));
-    memset(mat.nmat.imag, 0, r*c * sizeof(double));
+    for (i = 0; i < NMAX_NORMALMAT; i++)
+    {
+        if (_m._nmat_pos_[i] == 0)
+        {
+            _m._nmat_pos_[i] = 1;
+            _m.nnmat++;
+            mat.nmat = &(_m._nmat_[i]);
+            break;
+        }
+    }
 
-    return mat;
-}
+    if (i >= NMAX_NORMALMAT)
+    {
+        printf("cnew: Memory allocate failed\n");
+        return mat;
+    }
 
 
+    mat.nmat -> real = new double[r * c];
+    mat.nmat -> imag = new double[r * c];
 
-cmat cnew(double * real, double * imag, int r, int c)
-{
-    cmat mat;
+    memset(mat.nmat -> real, 0, r * c * sizeof(double));
+    memset(mat.nmat -> imag, 0, r * c * sizeof(double));
 
-    mat.row = r;
-    mat.col = c;
-
-    mat.nmat.real = new double[mat.row * mat.col];
-    mat.nmat.imag = new double[mat.row * mat.col];
-
-    memcpy(mat.nmat.real, real, mat.row * mat.col * sizeof(double));
-    memcpy(mat.nmat.imag, imag, mat.row * mat.col * sizeof(double));
+    printf("cnew: new cmat allocated successfully\n");
 
     return mat;
 }
@@ -48,10 +63,70 @@ cmat cnew(double * real, double * imag, int r, int c)
 
 void cdel(cmat a)
 {
-    delete[] a.nmat.real;
-    delete[] a.nmat.imag;
+    if (_m.nnmat <= 0)
+        return;
+
+    for (int i = 0; i < NMAX_NORMALMAT; i++)
+    {
+        if (_m._nmat_pos_[i] == 1)
+        {
+            if (&(_m._nmat_[i]) == a.nmat)
+            {
+                _m._nmat_pos_[i] = 0;
+                _m.nnmat--;
+
+                delete[] _m._nmat_[i].real;
+                delete[] _m._nmat_[i].imag;
+
+                printf("cdel: a cmat deleted successfully\n");
+
+                break;
+            }
+        }
+    } 
 }
 
+
+
+
+cmat cdup(cmat a)
+{
+    cmat mat;
+
+    mat = cnew(a.row, a.col);
+
+    memcpy(mat.nmat -> real, a.nmat -> real, mat.row * mat.col * sizeof(double));
+    memcpy(mat.nmat -> imag, a.nmat -> imag, mat.row * mat.col * sizeof(double));
+
+    return mat;
+}
+
+
+
+void cclr()
+{
+    if (_m.nnmat <= 0)
+        return;
+
+    printf("remain: %d\n", _m.nnmat);
+
+    for (int i = 0; i < NMAX_NORMALMAT; i++)
+    {
+        if (_m._nmat_pos_[i] == 1)
+        {
+            _m._nmat_pos_[i] = 0;
+            _m.nnmat--;
+
+            delete[] _m._nmat_[i].real;
+            delete[] _m._nmat_[i].imag;
+
+            printf("cclr: a cmat deleted successfully\n");
+
+            if (_m.nnmat <= 0)
+                break;
+        }
+    }
+}
 
 
 
@@ -76,8 +151,8 @@ void cshow(cmat a)
     {
         for (int j = 0; j < a.col; j++)
         {
-            double r = a.nmat.real[i*a.col + j];
-            double c = a.nmat.imag[i*a.col + j];
+            double r = a.nmat -> real[i*a.col + j];
+            double c = a.nmat -> imag[i*a.col + j];
             
             
             
@@ -101,8 +176,8 @@ cplx cget(cmat a, int r, int c)
 {
     cplx v;
 
-    v.real = a.nmat.real[r*a.col + c];
-    v.imag = a.nmat.imag[r*a.col + c];
+    v.real = a.nmat -> real[r*a.col + c];
+    v.imag = a.nmat -> imag[r*a.col + c];
 
     return v;
 }
@@ -114,56 +189,37 @@ cplx cget(cmat a, int r, int c)
 void cset(cmat a, cplx v, int r, int c)
 {
     
-    a.nmat.real[r*a.col + c] = v.real;
-    a.nmat.imag[r*a.col + c] = v.imag;
+    a.nmat -> real[r*a.col + c] = v.real;
+    a.nmat -> imag[r*a.col + c] = v.imag;
 }
 
 
 
 
-
-
-
-cmat ccpy(cmat a)
+int ceql(cplx a, cplx b)
 {
-    cmat mat;
-
-    mat.row = a.row;
-    mat.col = a.col;
-
-    mat.nmat.real = a.nmat.real;
-    mat.nmat.imag = a.nmat.imag;
-
-    return mat;
+    return (a.real == b.real && a.imag == b.imag);
 }
 
-
-
-
-
-
-
-
-
-
-cmat cdup(cmat a)
+int ceql(cmat a, cmat b)
 {
-    cmat mat;
+    if (a.row != b.row || a.col != b.col)
+        return 0;
 
-    mat.row = a.row;
-    mat.col = a.col;
+    int row = a.row;
+    int col = a.col;
 
-    mat.nmat.real = new double[mat.row * mat.col];
-    mat.nmat.imag = new double[mat.row * mat.col];
+    for (int i = 0; i < row; i++)
+    {
+        for (int j = 0; j < col; j++)
+        {
+            if (!ceql(cget(a, i, j), cget(b, i, j)))
+                return 0;
+        }
+    }
 
-    memcpy(mat.nmat.real, a.nmat.real, mat.row * mat.col * sizeof(double));
-    memcpy(mat.nmat.imag, a.nmat.imag, mat.row * mat.col * sizeof(double));
-
-    return mat;
+    return 1;
 }
-
-
-
 
 
 
@@ -175,14 +231,9 @@ cmat creal(cmat a)
 {
     cmat mat;
 
-    mat.row = a.row;
-    mat.col = a.col;
+    mat = cnew(a.row, a.col);
 
-    mat.nmat.real = new double[mat.row * mat.col];
-    mat.nmat.imag = new double[mat.row * mat.col];
-
-    memcpy(mat.nmat.real, a.nmat.real, mat.row * mat.col * sizeof(double));
-    memset(mat.nmat.imag, 0, mat.row * mat.col * sizeof(double));
+    memcpy(mat.nmat -> real, a.nmat -> real, mat.row * mat.col * sizeof(double));
 
     return mat;
 }
@@ -193,14 +244,9 @@ cmat cimag(cmat a)
 {
     cmat mat;
 
-    mat.row = a.row;
-    mat.col = a.col;
+    mat = cnew(a.row, a.col);
 
-    mat.nmat.real = new double[mat.row * mat.col];
-    mat.nmat.imag = new double[mat.row * mat.col];
-
-    memset(mat.nmat.real, 0, mat.row * mat.col * sizeof(double));
-    memcpy(mat.nmat.imag, a.nmat.imag, mat.row * mat.col * sizeof(double));
+    memcpy(mat.nmat -> imag, a.nmat -> imag, mat.row * mat.col * sizeof(double));
 
     return mat;
 }
@@ -218,7 +264,7 @@ cmat cconj(cmat a)
     {
         for (int j = 0; j < mat.col; j++)
         {
-            mat.nmat.imag[i*mat.col + j] = -1 * mat.nmat.imag[i*mat.col + j];
+            mat.nmat -> imag[i*mat.col + j] = -1 * mat.nmat -> imag[i*mat.col + j];
         }
     }
 
@@ -233,20 +279,19 @@ cmat cconj(cmat a)
 cmat ctrans(cmat a)
 {
     cmat mat;
+    cplx v;
 
-    mat = cdup(a);
+    int row = a.row;
+    int col = a.col;
 
-    for (int i = 0; i < mat.row; i++)
+    mat = cnew(col, row);
+
+    for (int i = 0; i < row; i++)
     {
-        for (int j = 0; j < i; j++)
+        for (int j = 0; j < col; j++)
         {
-            double real = mat.nmat.real[i*mat.col + j];
-            mat.nmat.real[i*mat.col + j] = mat.nmat.real[j*mat.col + i];
-            mat.nmat.real[j*mat.col + i] = real;
-
-            double imag = mat.nmat.imag[i*mat.col + j];
-            mat.nmat.imag[i*mat.col + j] = mat.nmat.imag[j*mat.col + i];
-            mat.nmat.imag[j*mat.col + i] = imag;
+            v = cget(a, i, j);
+            cset(mat, v, j, i);
         }
     }
 
@@ -294,11 +339,11 @@ cmat cadd(cmat a, cmat b)
     {
         for (int j = 0; j < mat.col; j++)
         {
-            double real = a.nmat.real[i*mat.col + j] + b.nmat.real[i*mat.col + j];
-            mat.nmat.real[i*mat.col + j] = real;
+            double real = a.nmat -> real[i*mat.col + j] + b.nmat -> real[i*mat.col + j];
+            mat.nmat -> real[i*mat.col + j] = real;
 
-            double imag = a.nmat.imag[i*mat.col + j] + b.nmat.imag[i*mat.col + j];
-            mat.nmat.imag[i*mat.col + j] = imag;
+            double imag = a.nmat -> imag[i*mat.col + j] + b.nmat -> imag[i*mat.col + j];
+            mat.nmat -> imag[i*mat.col + j] = imag;
         }
     }
 
@@ -320,11 +365,11 @@ cmat csub(cmat a, cmat b)
     {
         for (int j = 0; j < mat.col; j++)
         {
-            double real = a.nmat.real[i*mat.col + j] - b.nmat.real[i*mat.col + j];
-            mat.nmat.real[i*mat.col + j] = real;
+            double real = a.nmat -> real[i*mat.col + j] - b.nmat -> real[i*mat.col + j];
+            mat.nmat -> real[i*mat.col + j] = real;
 
-            double imag = a.nmat.imag[i*mat.col + j] - b.nmat.imag[i*mat.col + j];
-            mat.nmat.imag[i*mat.col + j] = imag;
+            double imag = a.nmat -> imag[i*mat.col + j] - b.nmat -> imag[i*mat.col + j];
+            mat.nmat -> imag[i*mat.col + j] = imag;
         }
     }
 
@@ -348,13 +393,13 @@ cmat cmul(cmat a, cmat b)
         {
             for (int k = 0; k < a.col; k++)
             {
-                double ar = a.nmat.real[i*a.col + k];
-                double ai = a.nmat.imag[i*a.col + k];
-                double br = b.nmat.real[k*b.col + j];
-                double bi = b.nmat.imag[k*b.col + j];
+                double ar = a.nmat -> real[i*a.col + k];
+                double ai = a.nmat -> imag[i*a.col + k];
+                double br = b.nmat -> real[k*b.col + j];
+                double bi = b.nmat -> imag[k*b.col + j];
 
-                mat.nmat.real[i*mat.col + j] += ar * br - ai * bi;
-                mat.nmat.imag[i*mat.col + j] += ar * bi + ai * br;
+                mat.nmat -> real[i*mat.col + j] += ar * br - ai * bi;
+                mat.nmat -> imag[i*mat.col + j] += ar * bi + ai * br;
             }
         }
     }
@@ -422,26 +467,157 @@ void cdivs(cmat a, cplx v, int r, int c)
     cset(a, vr, r, c);
 }
 
+
+
 cmat cadds(cmat a, cplx v)
 {
-    return cmat();
+    cmat mat;
+    cplx ve;
+    int row;
+    int col;
+
+    row = a.row;
+    col = a.col;
+
+    mat = cnew(row, col);
+
+    for (int i = 0; i < mat.row; i++)
+    {
+        for (int j = 0; j < mat.col; j++)
+        {
+            ve = cget(a, i, j);
+            cset(mat, cadd(ve, v), i, j);
+        }
+    }
+
+    return mat;
 }
 
 cmat csubs(cmat a, cplx v)
 {
-    return cmat();
+    cmat mat;
+    cplx ve;
+    int row;
+    int col;
+
+    row = a.row;
+    col = a.col;
+
+    mat = cnew(row, col);
+
+    for (int i = 0; i < mat.row; i++)
+    {
+        for (int j = 0; j < mat.col; j++)
+        {
+            ve = cget(a, i, j);
+            cset(mat, csub(ve, v), i, j);
+        }
+    }
+
+    return mat;
 }
 
 cmat cmuls(cmat a, cplx v)
 {
-    return cmat();
+    cmat mat;
+    cplx ve;
+    int row;
+    int col;
+
+    row = a.row;
+    col = a.col;
+
+    mat = cnew(row, col);
+
+    for (int i = 0; i < mat.row; i++)
+    {
+        for (int j = 0; j < mat.col; j++)
+        {
+            ve = cget(a, i, j);
+            cset(mat, cmul(ve, v), i, j);
+        }
+    }
+
+    return mat;
 }
+
 
 cmat cdivs(cmat a, cplx v)
 {
-    return cmat();
+    cmat mat;
+    cplx ve;
+    int row;
+    int col;
+
+    row = a.row;
+    col = a.col;
+
+    mat = cnew(row, col);
+
+    for (int i = 0; i < mat.row; i++)
+    {
+        for (int j = 0; j < mat.col; j++)
+        {
+            ve = cget(a, i, j);
+            cset(mat, cdiv(ve, v), i, j);
+        }
+    }
+
+    return mat;
 }
 
+
+
+cmat cmuls(cmat a, cmat b)
+{
+    cmat mat;
+    int row;
+    int col;
+
+    row = a.row;
+    col = a.col;
+
+    if (a.row != b.row || a.col != b.col)
+        return mat;
+
+    mat = cnew(row, col);
+
+    for (int i = 0; i < row; i++)
+    {
+        for (int j = 0; j < col; j++)
+        {
+            cset(mat, cmul(cget(a, i, j), cget(b, i, j)), i, j);
+        }
+    }
+
+    return mat;
+}
+
+
+cmat cdivs(cmat a, cmat b)
+{
+    cmat mat;
+    int row;
+    int col;
+
+    row = a.row;
+    col = a.col;
+
+    if (a.row != b.row || a.col != b.col)
+        return mat;
+
+    mat = cnew(row, col);
+
+    for (int i = 0; i < row; i++)
+    {
+        for (int j = 0; j < col; j++)
+        {
+            cset(mat, cdiv(cget(a, i, j), cget(b, i, j)), i, j);
+        }
+    }
+
+    return mat;
+}
 
 
 
@@ -469,8 +645,8 @@ cmat cmnr(cmat a, int r, int c)
             if (i != r && j != c)
             {
                 v = cget(a, i, j);
-                mat.nmat.real[idx] = v.real;
-                mat.nmat.imag[idx] = v.imag;
+                mat.nmat -> real[idx] = v.real;
+                mat.nmat -> imag[idx] = v.imag;
                 idx++;
             }
         }
@@ -492,7 +668,7 @@ double cdet(cmat a)
         return det;
 
     if (n == 1)
-        return a.nmat.real[0];
+        return a.nmat -> real[0];
 
     for (int k = 0; k < n; k++)
     {

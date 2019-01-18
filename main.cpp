@@ -52,10 +52,14 @@ int main()
     cout << x.row << ' ' << x.col << endl;
     cshow(x);
     
+    cshow(cmuls(b, x));
+    cshow(cmuls(a, t));
 
-    cdel(a);
-    cdel(b);
-    cdel(x);
+    //cdel(a);
+    //cdel(b);
+    //cdel(x);
+
+    cclr();
 
     system("pause");
     return 0;

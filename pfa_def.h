@@ -7,6 +7,10 @@
 
 
 
+#define NMAX_NORMALMAT 50
+#define NMAX_SPARSEMAT 50
+
+
 
 typedef struct cplx      cplx;
 typedef struct cmat      cmat;
@@ -21,6 +25,8 @@ struct cplx
     double imag = 0.0;
 };
 
+
+
 struct normalmat
 {
     double * real;
@@ -33,6 +39,8 @@ struct sparsemat
     
 };
 
+
+
 struct cmat
 {
     int row = 0;
@@ -40,17 +48,31 @@ struct cmat
     
     int sparse = 0;
 
-    normalmat nmat;
-    sparsemat smat;
+    normalmat * nmat;
+    sparsemat * smat;
 };
 
 
 
 
 
+struct _csys_mem_
+{
+    int nnmat = 0;
+    int _nmat_pos_[NMAX_NORMALMAT] = { 0 };
+    normalmat _nmat_[NMAX_NORMALMAT];
+};
+
+
+
+
+
+
 cmat cnew(int r, int c);
-cmat cnew(double * real, double * imag, int r, int c);
 void cdel(cmat a);
+cmat cdup(cmat a);
+void cclr();
+
 
 void cshow(cplx v);
 void cshow(cmat a);
@@ -58,9 +80,8 @@ void cshow(cmat a);
 cplx cget(cmat a, int r, int c);
 void cset(cmat a, cplx v, int r, int c);
 
-
-cmat ccpy(cmat a);
-cmat cdup(cmat a);
+int ceql(cplx a, cplx b);
+int ceql(cmat a, cmat b);
 
 cmat creal(cmat a);
 cmat cimag(cmat a);
@@ -94,8 +115,6 @@ cmat csubs(cmat a, cplx v);
 cmat cmuls(cmat a, cplx v);
 cmat cdivs(cmat a, cplx v);
 
-cmat cadds(cmat a, cmat b);
-cmat csubs(cmat a, cmat b);
 cmat cmuls(cmat a, cmat b);
 cmat cdivs(cmat a, cmat b);
 
