@@ -1,7 +1,9 @@
 #include "pfa_def.h"
 
 #include <memory>
-
+#include <cmath>
+#include <random>
+#include <ctime>
 
 
 
@@ -12,14 +14,16 @@ static struct _csys_mem_ _m;
 
 
 
-
 cmat cnew(int r, int c)
 {
     cmat mat;
     int i;
-    
+
     mat.row = r;
     mat.col = c;
+
+    if (r*c == 0)
+        return mat;
 
     if (_m.nnmat >= NMAX_NORMALMAT)
     {
@@ -51,7 +55,7 @@ cmat cnew(int r, int c)
     memset(mat.nmat -> real, 0, r * c * sizeof(double));
     memset(mat.nmat -> imag, 0, r * c * sizeof(double));
 
-    printf("cnew: new cmat allocated successfully\n");
+    //printf("cnew: new cmat allocated successfully\n");
 
     return mat;
 }
@@ -78,7 +82,7 @@ void cdel(cmat a)
                 delete[] _m._nmat_[i].real;
                 delete[] _m._nmat_[i].imag;
 
-                printf("cdel: a cmat deleted successfully\n");
+                //printf("cdel: a cmat deleted successfully\n");
 
                 break;
             }
@@ -108,7 +112,7 @@ void cclr()
     if (_m.nnmat <= 0)
         return;
 
-    printf("remain: %d\n", _m.nnmat);
+    //printf("remain: %d\n", _m.nnmat);
 
     for (int i = 0; i < NMAX_NORMALMAT; i++)
     {
@@ -120,7 +124,7 @@ void cclr()
             delete[] _m._nmat_[i].real;
             delete[] _m._nmat_[i].imag;
 
-            printf("cclr: a cmat deleted successfully\n");
+            //printf("cclr: a cmat deleted successfully\n");
 
             if (_m.nnmat <= 0)
                 break;
@@ -131,39 +135,232 @@ void cclr()
 
 
 
+int cisempt(cmat a)
+{
+    return ((a.col * a.row) ? 1 : 0);
+}
+
+
+int ciszero(cplx v)
+{
+    return (abs(v.real) < CDBL_EPSILON && abs(v.imag) < CDBL_EPSILON);
+}
+
+int cisreal(cplx v)
+{
+    return (abs(v.real) > CDBL_EPSILON && abs(v.imag) < CDBL_EPSILON);
+}
+
+int cisimag(cplx v)
+{
+    return (abs(v.real) < CDBL_EPSILON && abs(v.imag) > CDBL_EPSILON);
+}
+
+int cisint(cplx v)
+{
+    cplx vr;
+    double null;
+
+    vr = cround(v);
+    vr = csub(v, vr);
+
+    return ciszero(vr);
+}
+
+int ciszero(cmat a)
+{
+    cplx v;
+
+    int row = a.row;
+    int col = a.col;
+
+    for (int i = 0; i < row; i++)
+    {
+        for (int j = 0; j < col; j++)
+        {
+            v = cget(a, i, j);
+
+            if (!ciszero(v))
+            {
+                return 0;
+            }
+        }
+    }
+
+    return 1;
+}
+
+int cisreal(cmat a)
+{
+    cplx v;
+    int allzero = 1;
+
+    int row = a.row;
+    int col = a.col;
+
+    for (int i = 0; i < row; i++)
+    {
+        for (int j = 0; j < col; j++)
+        {
+            v = cget(a, i, j);
+
+            if (cisimag(v))
+            {
+                return 0;
+            }
+            else if (cisreal(v))
+            {
+                allzero = 0;
+            }
+        }
+    }
+
+    return (!allzero);
+}
+
+int cisimag(cmat a)
+{
+    cplx v;
+    int allzero = 1;
+
+    int row = a.row;
+    int col = a.col;
+
+    for (int i = 0; i < row; i++)
+    {
+        for (int j = 0; j < col; j++)
+        {
+            v = cget(a, i, j);
+
+            if (cisreal(v))
+            {
+                return 0;
+            }
+            else if (cisimag(v))
+            {
+                allzero = 0;
+            }
+        }
+    }
+
+    return (!allzero);
+}
+
+int cisint(cmat a)
+{
+    cplx v;
+
+    int row = a.row;
+    int col = a.col;
+
+    for (int i = 0; i < row; i++)
+    {
+        for (int j = 0; j < col; j++)
+        {
+            v = cget(a, i, j);
+
+            if (!cisint(v))
+            {
+                return 0;
+            }
+        }
+    }
+
+    return 1;
+}
+
+
+
+
 
 
 void cshow(cplx v)
 {
-    double r = v.real;
-    double c = v.imag;
-
-    if (c >= 0)
-        printf("%.4lf+j%.4lf\n", r, c);
+    if (ciszero(v))
+    {
+        printf("0\n");
+    }
+    else if (cisreal(v))
+    {
+        if (cisint(v))
+            printf("%.0lf\n", v.real);
+        else
+            printf("%.4lf\n", v.real);
+    }
+    else if (cisimag(v))
+    {
+        if (cisint(v))
+            printf("%.0lf\n", v.imag);
+        else
+        {
+            if (v.imag >= 0)
+                printf("j%.4lf\n", v.imag);
+            else
+                printf("-j%.4lf\n", -v.imag);
+        }
+    }
     else
-        printf("%.4lf-j%.4lf\n", r, -c);
+    {
+        if (v.imag >= 0)
+            printf("%.4lf+j%.4lf\n", v.real, v.imag);
+        else
+            printf("%.4lf-j%.4lf\n", v.real, -v.imag);
+    }
 }
 
 
 void cshow(cmat a)
 {
+    cplx v;
+
+    printf("[");
     for (int i = 0; i < a.row; i++)
     {
+        if (i != 0)
+            printf(" ");
+
+        printf("[");
         for (int j = 0; j < a.col; j++)
         {
-            double r = a.nmat -> real[i*a.col + j];
-            double c = a.nmat -> imag[i*a.col + j];
-            
-            
-            
-            if(c >= 0)
-                printf("%.4lf+j%.4lf ", r, c);
-            else
-                printf("%.4lf-j%.4lf ", r, -c);
-        }
-        printf("\n");
-    }
+            v.real = a.nmat -> real[i*a.col + j];
+            v.imag = a.nmat -> imag[i*a.col + j];
 
+            if (ciszero(v))
+            {
+                printf("0,");
+            }
+            else if (cisreal(v))
+            {
+                if (cisint(v))
+                    printf("%.0lf,", v.real);
+                else
+                    printf("%.4lf,", v.real);
+            }
+            else if (cisimag(v))
+            {
+                if (cisint(v))
+                    printf("j%.0lf,", v.imag);
+                else
+                {
+                    if (v.imag >= 0)
+                        printf("j%.4lf,", v.imag);
+                    else
+                        printf("-j%.4lf,", -v.imag);
+                }
+            }
+            else
+            {
+                if (v.imag >= 0)
+                    printf("%.4lf+j%.4lf,", v.real, v.imag);
+                else
+                    printf("%.4lf-j%.4lf,", v.real, -v.imag);
+            }
+        }
+        if (i >= a.row - 1)
+            printf("\b]]\n");
+        else
+            printf("\b],\n");
+    }
 }
 
 
@@ -198,7 +395,7 @@ void cset(cmat a, cplx v, int r, int c)
 
 int ceql(cplx a, cplx b)
 {
-    return (a.real == b.real && a.imag == b.imag);
+    return (abs(a.real - b.real) < DBL_EPSILON && abs(a.imag - b.imag) < DBL_EPSILON);
 }
 
 int ceql(cmat a, cmat b)
@@ -223,6 +420,109 @@ int ceql(cmat a, cmat b)
 
 
 
+
+
+
+
+cplx cceil(cplx v)
+{
+    cplx vr;
+
+    vr.real = ceil(v.real);
+    vr.imag = ceil(v.imag);
+
+    return vr;
+}
+
+cplx cfloor(cplx v)
+{
+    cplx vr;
+
+    vr.real = floor(v.real);
+    vr.imag = floor(v.imag);
+
+    return vr;
+}
+
+cplx cround(cplx v)
+{
+    cplx vr;
+
+    vr.real = round(v.real);
+    vr.imag = round(v.imag);
+
+    return vr;
+}
+
+
+cmat cceil(cmat a)
+{
+    cmat mat;
+    cplx v;
+
+    int row = a.row;
+    int col = a.col;
+
+    mat = cnew(row, col);
+
+    for (int i = 0; i < row; i++)
+    {
+        for (int j = 0; j < col; j++)
+        {
+            v = cget(a, i, j);
+            v = cceil(v);
+            cset(mat, v, i, j);
+        }
+    }
+
+    return mat;
+}
+
+cmat cfloor(cmat a)
+{
+    cmat mat;
+    cplx v;
+
+    int row = a.row;
+    int col = a.col;
+
+    mat = cnew(row, col);
+
+    for (int i = 0; i < row; i++)
+    {
+        for (int j = 0; j < col; j++)
+        {
+            v = cget(a, i, j);
+            v = cfloor(v);
+            cset(mat, v, i, j);
+        }
+    }
+
+    return mat;
+}
+
+cmat cround(cmat a)
+{
+    cmat mat;
+    cplx v;
+
+    int row = a.row;
+    int col = a.col;
+
+    mat = cnew(row, col);
+
+    for (int i = 0; i < row; i++)
+    {
+        for (int j = 0; j < col; j++)
+        {
+            v = cget(a, i, j);
+            v = cround(v);
+            cset(mat, v, i, j);
+        }
+    }
+
+    return mat;
+}
 
 
 
@@ -619,6 +919,76 @@ cmat cdivs(cmat a, cmat b)
     return mat;
 }
 
+
+
+cmat cone(int n)
+{
+    cmat mat;
+    cplx v;
+
+    mat = cnew(n, n);
+    v.real = 1.0;
+
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            cset(mat, v, i, j);
+        }
+    }
+
+    return mat;
+}
+
+cmat cone(int r, int c)
+{
+    cmat mat;
+    cplx v;
+
+    mat = cnew(r, c);
+    v.real = 1.0;
+
+    for (int i = 0; i < r; i++)
+    {
+        for (int j = 0; j < c; j++)
+        {
+            cset(mat, v, i, j);
+        }
+    }
+
+    return mat;
+}
+
+cmat ceye(int n)
+{
+    cmat mat;
+    cplx v;
+
+    mat = cnew(n, n);
+    v.real = 1.0;
+
+    for (int i = 0; i < n; i++)
+    {
+        cset(mat, v, i, i);
+    }
+
+    return mat;
+}
+
+cplx crand()
+{
+    return cplx();
+}
+
+cmat crand(int n)
+{
+    return cmat();
+}
+
+cmat crand(int r, int c)
+{
+    return cmat();
+}
 
 
 

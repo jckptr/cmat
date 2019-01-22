@@ -6,7 +6,7 @@
 
 
 #include "pfa_def.h"
-
+#include <cmath>
 
 
 
@@ -48,12 +48,23 @@ int main()
     cshow(ctrans(a));
     cshow(ctrace(a));
 
+
     cmat x = cdiv(b, a);
     cout << x.row << ' ' << x.col << endl;
     cshow(x);
     
     cshow(cmuls(b, x));
     cshow(cmuls(a, t));
+
+    cmat o = cone(3);
+    cmat p = ceye(3);
+
+    cplx v = { 0.0, 1.0 };
+
+    cshow(o);
+    cshow(p);
+    cshow(cmuls(o, v));
+    cshow(cmuls(o, p));
 
     //cdel(a);
     //cdel(b);

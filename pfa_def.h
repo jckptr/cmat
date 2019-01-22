@@ -6,6 +6,9 @@
 
 
 
+#define CDBL_EPSILON 1.0e-09
+
+
 
 #define NMAX_NORMALMAT 50
 #define NMAX_SPARSEMAT 50
@@ -69,10 +72,21 @@ struct _csys_mem_
 
 
 cmat cnew(int r, int c);
-void cdel(cmat a);
 cmat cdup(cmat a);
+void cdel(cmat a);
 void cclr();
 
+int cisempt(cmat a);
+int ciszero(cplx v);
+int cisreal(cplx v);
+int cisimag(cplx v);
+int cisint(cplx v);
+int ciszero(cmat a);
+int cisreal(cmat a);
+int cisimag(cmat a);
+int cisint(cmat a);
+int ceql(cplx a, cplx b);
+int ceql(cmat a, cmat b);
 
 void cshow(cplx v);
 void cshow(cmat a);
@@ -80,12 +94,23 @@ void cshow(cmat a);
 cplx cget(cmat a, int r, int c);
 void cset(cmat a, cplx v, int r, int c);
 
-int ceql(cplx a, cplx b);
-int ceql(cmat a, cmat b);
+// d == 'r' concat as row order
+// d == 'c' concat as col order
+cmat ccat(cmat a, cmat b, char d);
+
+
+cplx cceil(cplx v);
+cplx cfloor(cplx v);
+cplx cround(cplx v);
+cmat cceil(cmat a);
+cmat cfloor(cmat a);
+cmat cround(cmat a);
 
 cmat creal(cmat a);
 cmat cimag(cmat a);
 cmat cconj(cmat a);
+
+
 cmat ctrans(cmat a);
 cplx ctrace(cmat a);
 
@@ -117,6 +142,19 @@ cmat cdivs(cmat a, cplx v);
 
 cmat cmuls(cmat a, cmat b);
 cmat cdivs(cmat a, cmat b);
+
+
+cmat cone(int n);
+cmat cone(int r, int c);
+cmat ceye(int n);
+cplx crand();
+cmat crand(int n);
+cmat crand(int r, int c);
+
+cmat clns(double from, double to, int n);
+
+
+
 
 
 #endif
